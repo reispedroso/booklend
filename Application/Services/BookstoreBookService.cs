@@ -4,18 +4,20 @@ using booklend.Repository.Interfaces;
 
 namespace booklend.Application.Services
 {
-    public class BookstoreBookService(IBookstoreBookRepository bookstoreBookRepository)
+    public class BookstoreBookService(IBookstoreBookRepository bookstoreBookRepository, BookstoreService bookstoreService)
     {
         private readonly IBookstoreBookRepository _bookstoreBookRepository = bookstoreBookRepository;
+        private readonly BookstoreService _bookstoreService = bookstoreService;
 
-        public async Task<BookstoreBookReadDto> CreateAsync(BookstoreBookCreateDto dto)
+        public async Task<BookstoreBookReadDto> CreateAsync(BookstoreBookCreateDto dto, Guid userId)
         {
+            var userBookstore = await _bookstoreService.GetByAdminId(userId);
 
             var entity = new BookstoreBook
             {
                 Id = Guid.NewGuid(),
                 BookId = dto.BookId,
-                BookstoreId = dto.BookstoreId,
+                BookstoreId = userBookstore.Id,
                 Quantity = dto.Quantity,
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc),
                 UpdatedAt = null,
@@ -24,7 +26,7 @@ namespace booklend.Application.Services
             await _bookstoreBookRepository.CreateAsync(entity);
             return MapToDto(entity);
         }
-
+        
         public async Task<BookstoreBookReadDto> GetByIdAsync(Guid id)
         {
             var bookstoreBookById = await _bookstoreBookRepository.GetByIdAsync(id)
@@ -33,10 +35,14 @@ namespace booklend.Application.Services
             return MapToDto(bookstoreBookById);
         }
 
-        public async Task<BookstoreBookReadDto> UpdateAsync(Guid id, BookstoreBookUpdateDto dto)
+        public async Task<BookstoreBookReadDto> UpdateAsync(
+       Guid bookstoreBookId,
+       Guid userId,
+       BookstoreBookUpdateDto dto)
         {
-            var entity = await _bookstoreBookRepository.GetByIdAsync(id)
-             ?? throw new Exception($"Book not found in this Bookstore! Book id: {id}");
+
+            var entity = await _bookstoreBookRepository.GetByIdAndAdminAsync(bookstoreBookId, userId)
+                 ?? throw new Exception("Book not found in your bookstore.");
 
             entity.Quantity = dto.Quantity;
             entity.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc);

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using booklend.Application.Services;
 using booklend.Application.DTOs.Category;
+using Microsoft.AspNetCore.Authorization;
 
 namespace booklend.Controllers;
 
@@ -10,13 +11,15 @@ public class CategoryController(CategoryService service) : ControllerBase
 {
     private readonly CategoryService _service = service;
 
-     [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
     public async Task<ActionResult<CategoryReadDto>> Post([FromBody] CategoryCreateDto dto)
     {
         var created = await _service.CreateAsync(dto);
         return created;
     }
     [HttpGet]
+    [Authorize(Roles = "Admin, Client")]
     public async Task<ActionResult<List<CategoryReadDto>>> GetAll()
     {
         var list = await _service.GetAllAsync();
@@ -24,6 +27,7 @@ public class CategoryController(CategoryService service) : ControllerBase
     }
 
     [HttpGet("getbyid/{id}")]
+    [Authorize(Roles = "Admin, Client")]
     public async Task<ActionResult<CategoryReadDto>> GetById(Guid id)
     {
         var dto = await _service.GetByIdAsync(id);

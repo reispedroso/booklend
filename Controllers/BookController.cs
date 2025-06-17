@@ -13,8 +13,8 @@ namespace booklend.Controllers
     {
         private readonly BookService _service = service;
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BookReadDto>> Post([FromBody] BookCreateDto dto)
         {
             var created = await _service.CreateAsync(dto);
@@ -22,6 +22,7 @@ namespace booklend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Client")]
         public async Task<ActionResult<List<BookReadDto>>> GetAll()
         {
             var list = await _service.GetAllAsync();
@@ -29,12 +30,14 @@ namespace booklend.Controllers
         }
 
         [HttpGet("getbyid/{id}")]
+        [Authorize(Roles = "Admin,Client")]
         public async Task<ActionResult<BookReadDto>> GetById(Guid id)
         {
             var dto = await _service.GetByIdAsync(id);
             return Ok(dto);
         }
         [HttpGet("getbyname/{name}")]
+        [Authorize(Roles = "Admin,Client")]
         public async Task<ActionResult<BookReadDto>> GetByName(string name)
         {
             var dto = await _service.GetByNameAsync(name);
@@ -42,6 +45,7 @@ namespace booklend.Controllers
         }
 
         [HttpPost("update/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BookReadDto>> Update(Guid id, [FromBody] BookUpdateDto dto)
         {
             var updated = await _service.UpdateAsync(id, dto);
@@ -49,6 +53,7 @@ namespace booklend.Controllers
         }
 
         [HttpPost("delete/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _service.DeleteAsync(id);

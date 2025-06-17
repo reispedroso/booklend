@@ -26,7 +26,8 @@ public class RentalService(IRentalRepository rentalRep, BookstoreBookService ser
             Quantity = bookstoreBook.Quantity,
 
         };
-        await _service.UpdateAsync(dto.BookstoreBookId, updateDto);
+        await _service.UpdateAsync(dto.BookstoreBookId, dto.UserId, updateDto);
+
 
         var rentalEntity = new Rental
         {

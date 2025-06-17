@@ -18,6 +18,13 @@ namespace booklend.Repository
             return bookstore;
         }
 
+        public async Task<Bookstore?> GetByAdminIdAsync(Guid adminId)
+        {
+            return await _context.Bookstores.FirstOrDefaultAsync(bs => bs.AdminId == adminId);
+        }
+
+
+
         public async Task<List<Bookstore>> GetAllAsync()
         {
             return await _context.Bookstores.ToListAsync();
@@ -43,5 +50,6 @@ namespace booklend.Repository
             _context.Update(bookstore);
             await _context.SaveChangesAsync();
         }
+
     }
 }

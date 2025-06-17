@@ -7,7 +7,8 @@ yarn-error.log*
 # Environment variables
 .env
 .env.*
-
+obj/
+# Migrations/
 # Build output
 dist/
 build/

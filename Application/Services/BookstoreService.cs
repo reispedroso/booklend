@@ -8,7 +8,7 @@ namespace booklend.Application.Services
     {
         private readonly IBookstoreRepository _bookstoreRepository = bookstoreRepository;
 
-        public async Task<BookstoreReadDto> CreateAsync(BookstoreCreateDto dto)
+        public async Task<BookstoreReadDto> CreateAsync(BookstoreCreateDto dto, Guid adminId)
         {
             if (await _bookstoreRepository.GetByNameAsync(dto.BookstoreName) is not null) throw new Exception($"Bookstore with name {dto.BookstoreName} already registered");
 
@@ -16,7 +16,7 @@ namespace booklend.Application.Services
             {
                 Id = Guid.NewGuid(),
                 BookstoreName = dto.BookstoreName,
-                AdminId = dto.AdminId,
+                AdminId = adminId,
                 Street = dto.Street,
                 City = dto.City,
                 State = dto.State,
@@ -30,6 +30,13 @@ namespace booklend.Application.Services
             return MapToDto(entity);
         }
 
+        public async Task<BookstoreReadDto> GetByAdminId(Guid adminId)
+        {
+            var bookstore = await _bookstoreRepository.GetByAdminIdAsync(adminId)
+            ?? throw new Exception("Bookstore by Id not found!");
+
+            return MapToDto(bookstore);
+        }
         public async Task<IEnumerable<BookstoreReadDto>> GetAllAsync()
         {
             var entities = await _bookstoreRepository.GetAllAsync() ?? throw new Exception("No bookstores available");

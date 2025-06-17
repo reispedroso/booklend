@@ -11,14 +11,15 @@ namespace booklend.Controllers
     {
         private readonly AuthorService _service = service;
 
-        [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         public async Task<ActionResult<AuthorReadDTO>> Post([FromBody] AuthorCreateDto dto)
         {
             var created = await _service.CreateAsync(dto);
             return created;
         }
 
+        [Authorize(Roles = "Admin,Client")]
         [HttpGet]
         public async Task<ActionResult<List<AuthorReadDTO>>> GetAll()
         {
@@ -26,6 +27,7 @@ namespace booklend.Controllers
             return Ok(list);
         }
 
+        [Authorize(Roles = "Admin,Client")]
         [HttpGet("getbyid/{id}")]
         public async Task<ActionResult<AuthorReadDTO>> GetById(Guid id)
         {

@@ -6,8 +6,6 @@ namespace booklend.Application.DTOs.BookstoreBook
     {
         public Guid Id { get; set; }
         [Required]
-        public Guid BookstoreId { get; set; }
-        [Required]
         public Guid BookId { get; set; }
         [Required]
         public int Quantity { get; set; }
