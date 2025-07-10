@@ -47,6 +47,16 @@ public class UserService(IUserRepository userRepository)
         return MapToDto(entity);
     }
 
+    public async Task<bool> VerifyEmail(string email)
+    {
+        var entity = await _userRepository.GetByEmailAsync(email);
+        if (entity is null)
+        {
+            return false;
+        }
+        return true;
+    }
+
     public async Task<UserReadDto> GetByIdAsync(Guid id)
     {
         var entity = await _userRepository.GetByIdAsync(id)

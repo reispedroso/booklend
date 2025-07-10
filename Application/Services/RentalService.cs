@@ -11,7 +11,7 @@ public class RentalService(IRentalRepository rentalRep, BookstoreBookService ser
     private readonly IRentalRepository _rentalRep = rentalRep;
     private readonly BookstoreBookService _service = service;
 
-    public async Task<RentalReadDto> CreateAsync(RentalCreateDTO dto)
+    public async Task<RentalReadDto> CreateAsync(RentalCreateDTO dto, Guid userId)
     {
         RentalValidator.ValidateDate(dto.RentDate, dto.ReturnDate);
 
@@ -26,14 +26,14 @@ public class RentalService(IRentalRepository rentalRep, BookstoreBookService ser
             Quantity = bookstoreBook.Quantity,
 
         };
-        await _service.UpdateAsync(dto.BookstoreBookId, dto.UserId, updateDto);
+        await _service.UpdateAsync(dto.BookstoreBookId, updateDto);
 
 
         var rentalEntity = new Rental
         {
             Id = Guid.NewGuid(),
             BookstoreBookId = dto.BookstoreBookId,
-            UserId = dto.UserId,
+            UserId = userId,
             RentDate = DateTime.SpecifyKind(dto.RentDate, DateTimeKind.Utc),
             ReturnDate = DateTime.SpecifyKind(dto.ReturnDate, DateTimeKind.Utc),
             CreatedAt = DateTime.UtcNow,
@@ -45,6 +45,21 @@ public class RentalService(IRentalRepository rentalRep, BookstoreBookService ser
         return MapToDto(rentalEntity);
     }
 
+    public async Task<IEnumerable<RentalReadDto>> GetAllAsync()
+    {
+        var entities = await _rentalRep.GetAllAsync()
+        ?? throw new Exception("No rentals found!");
+
+        return entities.Select(MapToDto);
+    }
+
+    public async Task<IEnumerable<RentalReadDto>> GetAllByUserIdAsync(Guid userId)
+    {
+        var entities = await _rentalRep.GetAllByUserIdAsync(userId)
+        ?? throw new Exception("No rentals found for this user!");
+
+        return entities.Select(MapToDto);
+    }
     private static RentalReadDto MapToDto(Rental r) => new()
     {
         Id = r.Id,

@@ -26,7 +26,8 @@ namespace booklend.Repository
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
-        
+
+
         public async Task<List<User>> GetAllAsync()
         {
             return await _context.Users.ToListAsync();

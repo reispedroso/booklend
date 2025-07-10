@@ -9,9 +9,18 @@ namespace booklend.Repository
     {
         private readonly AppDbContext _context = context;
 
-        public async Task<Role?> GetNameById(Guid id)
+        public async Task<Role?> GetByNameAsync(string name)
         {
-            return await _context.Roles.FirstOrDefaultAsync(rl => rl.Id == id);
+            return await _context.Roles.FirstOrDefaultAsync(rl => rl.RoleName == name);
         }
+
+        public async Task<Role?> GetNameByIdAsync(Guid id)
+        {
+             return await _context.Roles.FirstOrDefaultAsync(rl => rl.Id == id);
+        }
+
+
+
+      
     }
 }
