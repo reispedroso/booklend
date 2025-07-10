@@ -4,6 +4,7 @@ namespace booklend.Repository.Interfaces
 {
     public interface IRoleRepository
     {
-        public Task<Role> GetNameById(Guid id);
+        public Task<Role> GetNameByIdAsync(Guid id);
+        public Task<Role> GetByNameAsync(string name);
     }
 }

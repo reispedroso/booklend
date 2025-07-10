@@ -5,6 +5,7 @@ using booklend.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using booklend.Application.DTOs.User;
 
 namespace booklend.Application.Services.Token;
 
@@ -13,28 +14,53 @@ public sealed class JwtGenerator(IOptions<JwtSettings> opt, RoleService roleServ
     private readonly JwtSettings _settings = opt.Value;
     private readonly RoleService _roleService = roleService;
 
-    public string Generate(User user)
+  public async Task<string> GenerateTokenAsync(UserReadDto userReadDto)
+{
+    var roleDto = await _roleService.GetNameById(userReadDto.RoleId);
+
+    var claims = new[]
     {
-        var roleDto = _roleService.GetNameById(user.RoleId).GetAwaiter().GetResult();
+        new Claim(ClaimTypes.NameIdentifier, userReadDto.Id.ToString()),
+        new Claim(ClaimTypes.Email, userReadDto.Email ?? string.Empty),
+        new Claim(ClaimTypes.Role, roleDto.RoleName ?? "")
+    };
 
-        var claims = new[]
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    var token = new JwtSecurityToken(
+        issuer: _settings.Issuer,
+        audience: _settings.Audience,
+        claims: claims,
+        expires: DateTime.SpecifyKind(DateTime.UtcNow.AddDays(_settings.ExpiresInDays), DateTimeKind.Utc),
+        signingCredentials: creds
+    );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+    public ClaimsPrincipal? ValidateToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_settings.Key);
+
+        try
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-            new Claim(ClaimTypes.Role, roleDto.RoleName ?? "")
-        };
+            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = _settings.Issuer,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuerSigningKey = true
+            }, out SecurityToken validatedToken);
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _settings.Issuer,
-            audience: _settings.Audience,
-            claims: claims,
-            expires: DateTime.SpecifyKind(DateTime.UtcNow.AddDays(_settings.ExpiresInDays), DateTimeKind.Utc),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            return principal;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

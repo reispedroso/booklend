@@ -8,20 +8,30 @@ using booklend.Application.Services.Token;
 using booklend.Application.Interfaces;
 using booklend.Repository;
 using booklend.Repository.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-// ────────────────────────────────────────────────────────────────
-// 1. Carrega as variáveis do .env *antes* de criar o builder
-// ────────────────────────────────────────────────────────────────
-Env.Load();                // procura um .env na pasta raiz do projeto
-// Se o arquivo estiver em outro lugar: Env.Load("caminho/do/arquivo.env");
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:6000");
 
-// ────────────────────────────────────────────────────────────────
-// 2. Injeta no IConfiguration o que veio do .env
-//    (DotNetEnv coloca as variáveis no processo, mas sem "__",
-//     então mapeamos manualmente para a árvore do IConfiguration)
-// ────────────────────────────────────────────────────────────────
+
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:3000")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        });
+});
+
+
 var connString =
     $"Host={Environment.GetEnvironmentVariable("DB_HOST")};" +
     $"Port={Environment.GetEnvironmentVariable("DB_PORT")};" +
@@ -30,15 +40,12 @@ var connString =
     $"Password={Environment.GetEnvironmentVariable("DB_PASSWORD")}";
 
 builder.Configuration["ConnectionStrings:DefaultConnection"] = connString;
-builder.Configuration["Jwt:Key"]        = Environment.GetEnvironmentVariable("JWT_KEY");
-builder.Configuration["Jwt:Issuer"]     = Environment.GetEnvironmentVariable("JWT_ISSUER");
-builder.Configuration["Jwt:Audience"]   = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+builder.Configuration["Jwt:Key"] = Environment.GetEnvironmentVariable("JWT_KEY");
+builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER");
+builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
 builder.Configuration["Jwt:ExpiresInDays"] =
     Environment.GetEnvironmentVariable("JWT_EXPIRES_IN_DAYS");
 
-// ────────────────────────────────────────────────────────────────
-// 3. Serviços de infraestrutura
-// ────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -51,20 +58,28 @@ builder.Services.AddAuthentication("Bearer")
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
-            ValidateLifetime         = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = jwt.Issuer,
-            ValidAudience            = jwt.Audience,
-            IssuerSigningKey         = new SymmetricSecurityKey(
+            ValidIssuer = jwt.Issuer,
+            ValidAudience = jwt.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
                                            Encoding.UTF8.GetBytes(jwt.Key))
         };
+
+        // options.Events = new JwtBearerEvents
+        // {
+        //     OnMessageReceived = context =>
+        //     {
+        //         var token = context.Request.Cookies["auth_token"];
+        //         if (!string.IsNullOrEmpty(token))
+        //             context.Token = token;
+        //         return Task.CompletedTask;
+        //     }
+        // };
     });
 
-// ────────────────────────────────────────────────────────────────
-// 4. Demais serviços (repositórios, aplicações, etc.)
-// ────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookstoreRepository, BookstoreRepository>();
@@ -90,10 +105,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ────────────────────────────────────────────────────────────────
-// 5. Pipeline HTTP
-// ────────────────────────────────────────────────────────────────
+
 var app = builder.Build();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 if (app.Environment.IsDevelopment())
 {
@@ -101,9 +116,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.UseAuthentication();   //  ← Faltava para validar o JWT
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.Run();

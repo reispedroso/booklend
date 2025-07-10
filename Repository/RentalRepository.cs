@@ -21,9 +21,11 @@ namespace booklend.Repository
             return await _context.Rentals.ToListAsync();
         }
 
-        public async Task<Rental?> GetAllByUserIdAsync(Guid userId)
+        public async Task<List<Rental>> GetAllByUserIdAsync(Guid userId)
         {
-            return await _context.Rentals.FirstOrDefaultAsync(r => r.UserId == userId);
+            return await _context.Rentals
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
         }
 
         public async Task UpdateAsync(Rental rental)

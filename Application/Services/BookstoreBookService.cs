@@ -37,13 +37,11 @@ namespace booklend.Application.Services
 
         public async Task<BookstoreBookReadDto> UpdateAsync(
        Guid bookstoreBookId,
-       Guid userId,
        BookstoreBookUpdateDto dto)
         {
 
-            var entity = await _bookstoreBookRepository.GetByIdAndAdminAsync(bookstoreBookId, userId)
-                 ?? throw new Exception("Book not found in your bookstore.");
-
+            var entity = await _bookstoreBookRepository.GetByIdAsync(bookstoreBookId);
+            
             entity.Quantity = dto.Quantity;
             entity.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc);
 
