@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace booklend.Migrations
 {
     /// <inheritdoc />
-    public partial class Startup : Migration
+    public partial class DevDbStart : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -112,6 +112,25 @@ namespace booklend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BookRating",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    BookId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Score = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BookRating", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BookRating_Books_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Books",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Bookstores",
                 columns: table => new
                 {
@@ -138,28 +157,29 @@ namespace booklend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookstoreBooks",
+                name: "BookItems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     BookstoreId = table.Column<Guid>(type: "uuid", nullable: false),
                     BookId = table.Column<Guid>(type: "uuid", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
+                    BookCondition = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookstoreBooks", x => x.Id);
+                    table.PrimaryKey("PK_BookItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BookstoreBooks_Books_BookId",
+                        name: "FK_BookItems_Books_BookId",
                         column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BookstoreBooks_Bookstores_BookstoreId",
+                        name: "FK_BookItems_Bookstores_BookstoreId",
                         column: x => x.BookstoreId,
                         principalTable: "Bookstores",
                         principalColumn: "Id",
@@ -172,7 +192,7 @@ namespace booklend.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    BookstoreBookId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BookItemId = table.Column<Guid>(type: "uuid", nullable: false),
                     RentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ReturnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -183,9 +203,9 @@ namespace booklend.Migrations
                 {
                     table.PrimaryKey("PK_Rentals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Rentals_BookstoreBooks_BookstoreBookId",
-                        column: x => x.BookstoreBookId,
-                        principalTable: "BookstoreBooks",
+                        name: "FK_Rentals_BookItems_BookItemId",
+                        column: x => x.BookItemId,
+                        principalTable: "BookItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -197,6 +217,22 @@ namespace booklend.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BookItems_BookId",
+                table: "BookItems",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookItems_BookstoreId_BookId",
+                table: "BookItems",
+                columns: new[] { "BookstoreId", "BookId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookRating_BookId",
+                table: "BookRating",
+                column: "BookId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Books_AuthorId",
                 table: "Books",
                 column: "AuthorId");
@@ -205,17 +241,6 @@ namespace booklend.Migrations
                 name: "IX_Books_CategoryId",
                 table: "Books",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BookstoreBooks_BookId",
-                table: "BookstoreBooks",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BookstoreBooks_BookstoreId_BookId",
-                table: "BookstoreBooks",
-                columns: new[] { "BookstoreId", "BookId" },
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookstores_AdminId",
@@ -229,9 +254,9 @@ namespace booklend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Rentals_BookstoreBookId",
+                name: "IX_Rentals_BookItemId",
                 table: "Rentals",
-                column: "BookstoreBookId");
+                column: "BookItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Rentals_UserId",
@@ -260,10 +285,13 @@ namespace booklend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "BookRating");
+
+            migrationBuilder.DropTable(
                 name: "Rentals");
 
             migrationBuilder.DropTable(
-                name: "BookstoreBooks");
+                name: "BookItems");
 
             migrationBuilder.DropTable(
                 name: "Books");

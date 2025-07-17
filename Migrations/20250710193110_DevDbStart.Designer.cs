@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using booklend.Database;
@@ -11,9 +12,11 @@ using booklend.Database;
 namespace booklend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250710193110_DevDbStart")]
+    partial class DevDbStart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,14 +96,14 @@ namespace booklend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("BookCondition")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("BookId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("BookstoreId")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("Condition")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -133,14 +136,14 @@ namespace booklend.Migrations
                     b.Property<Guid>("BookId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Note")
-                        .HasColumnType("numeric");
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BookId");
 
-                    b.ToTable("BookRatings");
+                    b.ToTable("BookRating");
                 });
 
             modelBuilder.Entity("booklend.Models.Bookstore", b =>

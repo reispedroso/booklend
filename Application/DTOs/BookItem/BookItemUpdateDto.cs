@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using booklend.Enums;
 
-namespace booklend.Application.DTOs.BookstoreBook
+namespace booklend.Application.DTOs.BookItem
 {
-    public class BookstoreBookUpdateDto
+    public class BookItemUpdateDto
     {
         [Required]
         public Guid BookstoreId { get; set; }
@@ -10,6 +11,7 @@ namespace booklend.Application.DTOs.BookstoreBook
         public Guid BookId { get; set; }
         [Required]
         public int Quantity { get; set; }
+        public BookCondition Condition { get; set; }
 
     }
 }

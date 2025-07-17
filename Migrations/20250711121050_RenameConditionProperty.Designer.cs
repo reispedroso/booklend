@@ -12,8 +12,8 @@ using booklend.Database;
 namespace booklend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250616141526_Startup")]
-    partial class Startup
+    [Migration("20250711121050_RenameConditionProperty")]
+    partial class RenameConditionProperty
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -90,6 +90,62 @@ namespace booklend.Migrations
                     b.ToTable("Books");
                 });
 
+            modelBuilder.Entity("booklend.Models.BookItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookstoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Condition")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("BookstoreId", "BookId")
+                        .IsUnique();
+
+                    b.ToTable("BookItems", (string)null);
+                });
+
+            modelBuilder.Entity("booklend.Models.BookRating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId");
+
+                    b.ToTable("BookRatings");
+                });
+
             modelBuilder.Entity("booklend.Models.Bookstore", b =>
                 {
                     b.Property<Guid>("Id")
@@ -133,40 +189,6 @@ namespace booklend.Migrations
                     b.ToTable("Bookstores");
                 });
 
-            modelBuilder.Entity("booklend.Models.BookstoreBook", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BookId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BookstoreId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("BookstoreId", "BookId")
-                        .IsUnique();
-
-                    b.ToTable("BookstoreBooks", (string)null);
-                });
-
             modelBuilder.Entity("booklend.Models.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,7 +218,7 @@ namespace booklend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BookstoreBookId")
+                    b.Property<Guid>("BookItemId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -219,7 +241,7 @@ namespace booklend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookstoreBookId");
+                    b.HasIndex("BookItemId");
 
                     b.HasIndex("UserId");
 
@@ -305,6 +327,36 @@ namespace booklend.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("booklend.Models.BookItem", b =>
+                {
+                    b.HasOne("booklend.Models.Book", "Book")
+                        .WithMany("BookItem")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("booklend.Models.Bookstore", "Bookstore")
+                        .WithMany("BookItems")
+                        .HasForeignKey("BookstoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("Bookstore");
+                });
+
+            modelBuilder.Entity("booklend.Models.BookRating", b =>
+                {
+                    b.HasOne("booklend.Models.Book", "Book")
+                        .WithMany("Ratings")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+                });
+
             modelBuilder.Entity("booklend.Models.Bookstore", b =>
                 {
                     b.HasOne("booklend.Models.User", "Admin")
@@ -315,30 +367,11 @@ namespace booklend.Migrations
                     b.Navigation("Admin");
                 });
 
-            modelBuilder.Entity("booklend.Models.BookstoreBook", b =>
-                {
-                    b.HasOne("booklend.Models.Book", "Book")
-                        .WithMany("BookstoreBooks")
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("booklend.Models.Bookstore", "Bookstore")
-                        .WithMany("BookstoreBooks")
-                        .HasForeignKey("BookstoreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Book");
-
-                    b.Navigation("Bookstore");
-                });
-
             modelBuilder.Entity("booklend.Models.Rental", b =>
                 {
-                    b.HasOne("booklend.Models.BookstoreBook", "BookstoreBook")
+                    b.HasOne("booklend.Models.BookItem", "BookItem")
                         .WithMany("Rentals")
-                        .HasForeignKey("BookstoreBookId")
+                        .HasForeignKey("BookItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -348,7 +381,7 @@ namespace booklend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("BookstoreBook");
+                    b.Navigation("BookItem");
 
                     b.Navigation("User");
                 });
@@ -371,17 +404,19 @@ namespace booklend.Migrations
 
             modelBuilder.Entity("booklend.Models.Book", b =>
                 {
-                    b.Navigation("BookstoreBooks");
+                    b.Navigation("BookItem");
+
+                    b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("booklend.Models.BookItem", b =>
+                {
+                    b.Navigation("Rentals");
                 });
 
             modelBuilder.Entity("booklend.Models.Bookstore", b =>
                 {
-                    b.Navigation("BookstoreBooks");
-                });
-
-            modelBuilder.Entity("booklend.Models.BookstoreBook", b =>
-                {
-                    b.Navigation("Rentals");
+                    b.Navigation("BookItems");
                 });
 
             modelBuilder.Entity("booklend.Models.Category", b =>

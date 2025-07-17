@@ -32,7 +32,6 @@ namespace booklend.Application.Services
 
         private static RoleReadDTO MapToDto(Role r) => new()
         {
-            Id = r.Id,
             RoleName = r.RoleName
         };
     }

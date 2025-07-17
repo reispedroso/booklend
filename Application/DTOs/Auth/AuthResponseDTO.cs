@@ -1,7 +1,7 @@
-using booklend.Application.DTOs.User;
+namespace booklend.Application.DTOs.User;
 
 public class AuthResponseDTO
 {
-    public string? Token { get; set; }
-    public UserReadDto? User { get; set; }
+    public string Token { get; set; } = default!;
+    public UserReadDto User { get; set; } = default!;
 }

@@ -2,20 +2,20 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using booklend.Application.Services;
-using booklend.Application.DTOs.BookstoreBook;
+using booklend.Application.DTOs.BookItem;
 
 namespace booklend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BookstoreBookController(BookstoreBookService service, BookstoreService bsService) : BaseController
+public class BookItemController(BookItemService service, BookstoreService bsService) : BaseController
 {
-    private readonly BookstoreBookService _service = service;
+    private readonly BookItemService _service = service;
     private readonly BookstoreService _bsService = bsService;
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    public async Task<ActionResult<BookstoreBookReadDto>> Post([FromBody] BookstoreBookCreateDto dto)
+    public async Task<ActionResult<BookItemReadDto>> Post([FromBody] BookItemCreateDto dto)
     {
         var userId = GetUserIdOrThrow();
         
@@ -26,17 +26,17 @@ public class BookstoreBookController(BookstoreBookService service, BookstoreServ
 
     [Authorize(Roles = "Admin")]
     [HttpPost("update/{id}")]
-    public async Task<ActionResult<BookstoreBookReadDto>> Update(
+    public async Task<ActionResult<BookItemReadDto>> Update(
     Guid id,
-    [FromBody] BookstoreBookUpdateDto dto)
+    [FromBody] BookItemUpdateDto dto)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim is null) return Unauthorized();
 
         var userId = Guid.Parse(userIdClaim.Value);
 
-        var bookstoreBook = await _service.GetByIdAsync(id);
-        var bookstore = await _bsService.GetByIdAsync(bookstoreBook.BookstoreId);
+        var bookItem = await _service.GetByIdAsync(id);
+        var bookstore = await _bsService.GetByIdAsync(bookItem.BookstoreId);
 
         if (bookstore.AdminId != userId)
             return Forbid("You have no permission to updated this bookstore data");

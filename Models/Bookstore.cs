@@ -21,7 +21,7 @@ namespace booklend.Models
         public DateTime? DeletedAt { get; set; }
 
         public User? Admin { get; set; }
-        public ICollection<BookstoreBook>? BookstoreBooks { get; set; }
+        public ICollection<BookItem>? BookItems { get; set; }
 
     }
 }
