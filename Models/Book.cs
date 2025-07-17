@@ -17,7 +17,9 @@ namespace booklend.Models
         // Navegação
         public Author? Author { get; set; }
         public Category? Category { get; set; }
-        public ICollection<BookstoreBook>? BookstoreBooks { get; set; }
+        public ICollection<BookItem>? BookItem { get; set; }
+        public ICollection<BookRating>? Ratings { get; set; }
+
 
     }
 }

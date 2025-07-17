@@ -16,84 +16,94 @@ public class UserService(IUserRepository userRepository)
 
         var entity = new User
         {
-            Id = Guid.NewGuid(),
+            Id = dto.Id,
             Username = dto.Username,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Email = dto.Email,
-            Password = PasswordHasher.HashPassword(dto.Password),
+            Password = PasswordHasher.Hash(dto.Password),
             RoleId = dto.RoleId,
-            CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc),
-            UpdatedAt = null,
-            DeletedAt = null
+            CreatedAt = DateTime.UtcNow,
         };
 
         await _userRepository.CreateAsync(entity);
         return MapToDto(entity);
-
     }
 
     public async Task<IEnumerable<UserReadDto>> GetAllAsync()
     {
-        var entities = await _userRepository.GetAllAsync() ?? throw new Exception("No user available");
-        return entities.Select(MapToDto);
-
-    }
-
-    public async Task<UserReadDto> GetByEmailAsync(string email)
-    {
-        var entity = await _userRepository.GetByEmailAsync(email)
-        ?? throw new Exception("User with that email was not found");
-        return MapToDto(entity);
-    }
-
-    public async Task<bool> VerifyEmail(string email)
-    {
-        var entity = await _userRepository.GetByEmailAsync(email);
-        if (entity is null)
+        var users = await _userRepository.GetAllAsync();
+        return users.Select(u => new UserReadDto
         {
-            return false;
+            Id = u.Id,
+            Username = u.Username!,
+            FirstName = u.FirstName!,
+            LastName = u.LastName,
+            Email = u.Email!,
+            RoleId = u.RoleId
+        });
+    }
+
+    public async Task<UserReadDto> UpdateAsync(Guid id, UserUpdateDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(id) ?? throw new Exception("User not found");
+
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.Email = dto.Email;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+        {
+            user.Password = PasswordHasher.Hash(dto.Password);
         }
-        return true;
+
+        await _userRepository.UpdateAsync(user);
+
+        return new UserReadDto
+        {
+            Id = user.Id,
+            Username = user.Username!,
+            FirstName = user.FirstName!,
+            LastName = user.LastName,
+            Email = user.Email!,
+            RoleId = user.RoleId
+        };
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var user = await _userRepository.GetByIdAsync(id) ?? throw new Exception("User not found");
+
+        user.DeletedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+    }
+    
+    public async Task<User?> GetEntityByEmailAsync(string email)
+    {
+        return await _userRepository.GetByEmailAsync(email);
     }
 
     public async Task<UserReadDto> GetByIdAsync(Guid id)
     {
         var entity = await _userRepository.GetByIdAsync(id)
-        ?? throw new Exception($"User with id: {id} not found");
+            ?? throw new Exception("User not found");
 
         return MapToDto(entity);
     }
 
-    public async Task<UserReadDto> UpdateAsync(Guid id, UserUpdateDto dto)
+    public async Task<bool> VerifyEmail(string email)
     {
-        var entity = await _userRepository.GetByIdAsync(id);
-
-        entity.FirstName = dto.FirstName;
-        entity.LastName = dto.LastName;
-        entity.Email = dto.Email;
-        entity.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc);
-        if (!string.IsNullOrWhiteSpace(dto.Password))
-            entity.Password = PasswordHasher.HashPassword(dto.Password);
-
-        await _userRepository.UpdateAsync(entity);
-        return MapToDto(entity);
+        return await _userRepository.GetByEmailAsync(email) is not null;
     }
 
-    public async Task DeleteAsync(Guid id)
-    {
-        var entity = await _userRepository.GetByIdAsync(id);
-
-        entity.DeletedAt = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Utc);
-        await _userRepository.UpdateAsync(entity);
-    }
     private static UserReadDto MapToDto(User u) => new()
     {
         Id = u.Id,
         Username = u.Username!,
         FirstName = u.FirstName!,
         LastName = u.LastName,
-        PasswordHash = u.Password,
         Email = u.Email!,
         RoleId = u.RoleId
     };

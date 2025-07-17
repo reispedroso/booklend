@@ -8,7 +8,6 @@ using booklend.Application.Services.Token;
 using booklend.Application.Interfaces;
 using booklend.Repository;
 using booklend.Repository.Interfaces;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 Env.Load();
 
@@ -68,22 +67,12 @@ builder.Services.AddAuthentication("Bearer")
                                            Encoding.UTF8.GetBytes(jwt.Key))
         };
 
-        // options.Events = new JwtBearerEvents
-        // {
-        //     OnMessageReceived = context =>
-        //     {
-        //         var token = context.Request.Cookies["auth_token"];
-        //         if (!string.IsNullOrEmpty(token))
-        //             context.Token = token;
-        //         return Task.CompletedTask;
-        //     }
-        // };
     });
 
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBookstoreRepository, BookstoreRepository>();
-builder.Services.AddScoped<IBookstoreBookRepository, BookstoreBookRepository>();
+builder.Services.AddScoped<IBookItemRepository, BookItemRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -94,7 +83,7 @@ builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<BookstoreService>();
-builder.Services.AddScoped<BookstoreBookService>();
+builder.Services.AddScoped<BookItemService>();
 builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<AuthorService>();
 builder.Services.AddScoped<CategoryService>();

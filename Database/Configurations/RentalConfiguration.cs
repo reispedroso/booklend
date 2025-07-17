@@ -14,9 +14,9 @@ namespace booklend.Database.Configurations
             .HasForeignKey(r => r.UserId);
 
             builder
-             .HasOne(r => r.BookstoreBook)
+             .HasOne(r => r.BookItem)
              .WithMany(bb => bb.Rentals)
-            .HasForeignKey(r => r.BookstoreBookId);
+            .HasForeignKey(r => r.BookItemId);
         }
     }
 }

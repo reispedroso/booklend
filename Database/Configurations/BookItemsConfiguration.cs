@@ -1,32 +1,27 @@
-// Database/Configurations/BookstoreBookConfiguration.cs
 using booklend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace booklend.Database.Configurations
 {
-    public class BookstoreBookConfiguration : IEntityTypeConfiguration<BookstoreBook>
+    public class BookItemsConfiguration : IEntityTypeConfiguration<BookItem>
     {
-        public void Configure(EntityTypeBuilder<BookstoreBook> builder)
+        public void Configure(EntityTypeBuilder<BookItem> builder)
         {
-            builder.ToTable("BookstoreBooks");
+            builder.ToTable("BookItems");
 
-            // PK
             builder.HasKey(bb => bb.Id);
 
-            // FK -> Bookstore
             builder.HasOne(bb => bb.Bookstore)
-                   .WithMany(bs => bs.BookstoreBooks)
+                   .WithMany(bs => bs.BookItems)
                    .HasForeignKey(bb => bb.BookstoreId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // FK -> Book
             builder.HasOne(bb => bb.Book)
-                   .WithMany(b => b.BookstoreBooks)
+                   .WithMany(b => b.BookItem)
                    .HasForeignKey(bb => bb.BookId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Índice único para impedir o mesmo livro duas vezes na mesma loja
             builder.HasIndex(bb => new { bb.BookstoreId, bb.BookId })
                    .IsUnique();
 

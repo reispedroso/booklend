@@ -1,38 +1,38 @@
 using booklend.Application.DTOs.Rental;
-using booklend.Application.DTOs.BookstoreBook;
+using booklend.Application.DTOs.BookItem;
 using booklend.Application.Services.Validation;
 using booklend.Models;
 using booklend.Repository.Interfaces;
 
 namespace booklend.Application.Services;
 
-public class RentalService(IRentalRepository rentalRep, BookstoreBookService service)
+public class RentalService(IRentalRepository rentalRep, BookItemService service)
 {
     private readonly IRentalRepository _rentalRep = rentalRep;
-    private readonly BookstoreBookService _service = service;
+    private readonly BookItemService _service = service;
 
     public async Task<RentalReadDto> CreateAsync(RentalCreateDTO dto, Guid userId)
     {
         RentalValidator.ValidateDate(dto.RentDate, dto.ReturnDate);
 
-        var bookstoreBook = await _service.GetByIdAsync(dto.BookstoreBookId);
-        if (bookstoreBook.Quantity <= 0)
-            throw new ArgumentException($"This bookstore is out of items, quantity now is of: {bookstoreBook.Quantity}");
+        var bookItem = await _service.GetByIdAsync(dto.BookItemId);
+        if (bookItem.Quantity <= 0)
+            throw new ArgumentException($"This bookstore is out of items, quantity now is of: {bookItem.Quantity}");
 
-        bookstoreBook.Quantity -= 1;
+        bookItem.Quantity -= 1;
 
-        var updateDto = new BookstoreBookUpdateDto
+        var updateDto = new BookItemUpdateDto
         {
-            Quantity = bookstoreBook.Quantity,
+            Quantity = bookItem.Quantity,
 
         };
-        await _service.UpdateAsync(dto.BookstoreBookId, updateDto);
+        await _service.UpdateAsync(dto.BookItemId, updateDto);
 
 
         var rentalEntity = new Rental
         {
             Id = Guid.NewGuid(),
-            BookstoreBookId = dto.BookstoreBookId,
+            BookItemId = dto.BookItemId,
             UserId = userId,
             RentDate = DateTime.SpecifyKind(dto.RentDate, DateTimeKind.Utc),
             ReturnDate = DateTime.SpecifyKind(dto.ReturnDate, DateTimeKind.Utc),
@@ -64,6 +64,6 @@ public class RentalService(IRentalRepository rentalRep, BookstoreBookService ser
     {
         Id = r.Id,
         UserId = r.UserId,
-        BookstoreBookId = r.BookstoreBookId
+        BookItemId = r.BookItemId
     };
 }

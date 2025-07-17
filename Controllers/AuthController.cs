@@ -13,7 +13,7 @@ namespace booklend.Controllers
         private readonly AuthService _authService = authService;
 
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] LoginRequest login)
+        public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto login)
         {
             var token = await _authService.LoginAsync(login.Email, login.Password);
 
